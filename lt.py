@@ -6,7 +6,9 @@ from anticaptchaofficial.funcaptchaproxyless import funcaptchaProxyless
 from datetime import datetime
 import time
 
+# Einstellungen
 website_url = "https://auth.roblox.com/v2/signup"
+webhook_url = input("Enter your Discord webhook URL: ")
 
 def get_xsrf_token(session):
     response = session.post("https://auth.roblox.com/v2/login", headers={"X-CSRF-TOKEN": ""})
@@ -86,68 +88,59 @@ def create_account(session, username, password):
         "username": username,
         "password": password,
         "birthday": birthday,
-        "gender": 1,
-        "isTosAgreementBoxChecked": True,
-        "context": "MultiverseSignupForm",
-        "referralData": None,
-        "captchaId": captcha_data['captcha_id'],
+        "gender": random.choice(["male", "female"]),
         "captchaToken": captcha_token,
-        "captchaProvider": "PROVIDER_ARKOSE_LABS",
-        "agreementIds": [
-            "848d8d8f-0e33-4176-bcd9-aa4e22ae7905",
-            "54d8a8f0-d9c8-4cf3-bd26-0cbf8af0bba3"
-        ]
     }
 
     headers = {
+        'authority': 'auth.roblox.com',
         'x-csrf-token': csrf_token,
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36',
         'content-type': 'application/json;charset=UTF-8',
         'accept': 'application/json, text/plain, */*',
     }
-
-    response = session.post(website_url, json=registration_payload, headers=headers)
+    response = session.post('https://auth.roblox.com/v2/signup', headers=headers, json=registration_payload)
     if response.ok:
-        logger.success('Successful Registration!')
-        return username, password, birthday, response.cookies
+        logger.success("Account created successfully")
+        return {"username": username, "password": password, "date": datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     else:
-        logger.error('Failed Registration!')
-        logger.debug(response.headers)
-        logger.debug(response.text)
-        logger.debug(response.status_code)
+        logger.error(f"Failed to create account: {response.text}")
         return None
 
-def send_to_discord(webhook_url, file_path):
-    with open(file_path, 'rb') as file:
-        response = requests.post(webhook_url, files={'file': file})
-    if response.status_code == 204:
+def send_to_discord(filename, webhook_url):
+    with open(filename, 'rb') as file:
+        response = requests.post(
+            webhook_url,
+            files={'file': (filename, file)}
+        )
+    if response.status_code == 200:
         logger.success("File sent to Discord webhook successfully")
     else:
         logger.error(f"Failed to send file to Discord webhook: {response.status_code}")
 
 def main():
-    webhook_url = input("Enter your Discord webhook URL: ")
     num_accounts = int(input("How many accounts do you want to generate (1-10000)? "))
-    if not (1 <= num_accounts <= 10000):
-        logger.error("Number of accounts must be between 1 and 10000")
-        return
+    session = requests.Session()
+    accounts = []
 
-    file_path = 'acc.txt'
-    with open(file_path, 'w') as file:
-        with requests.Session() as session:
-            for _ in range(num_accounts):
-                username = f"user{random.randint(10000, 99999)}"
-                password = f"pass{random.randint(10000, 99999)}"
-                account = create_account(session, username, password)
-                if account:
-                    username, password, birthday, _ = account
-                    date_created = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    country = "USA"  # Example country, you may want to use an actual IP geolocation service
-                    account_info = f"_______________\nUsername: {username}\nPassword: {password}\nDate: {date_created}\nCountry: {country}\n_______________\n"
-                    file.write(account_info)
-                    time.sleep(2)  # Increase sleep to avoid rate limiting
+    for _ in range(num_accounts):
+        username = f"user_{random.randint(1000, 9999)}"
+        password = f"pass_{random.randint(1000, 9999)}"
+        account = create_account(session, username, password)
+        if account:
+            accounts.append(account)
+        time.sleep(1)  # Wartezeit einfügen, um zu viele Anfragen zu vermeiden
 
-    send_to_discord(webhook_url, file_path)
+    filename = 'acc.txt'
+    with open(filename, 'w') as file:
+        for account in accounts:
+            file.write(f"_______________\n")
+            file.write(f"Username: {account['username']}\n")
+            file.write(f"Password: {account['password']}\n")
+            file.write(f"Date: {account['date']}\n")
+            file.write(f"________________\n")
+
+    send_to_discord(filename, webhook_url)
 
 if __name__ == "__main__":
     main()
