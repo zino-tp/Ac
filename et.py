@@ -135,7 +135,7 @@ def main():
     file_path = 'acc.txt'
     with open(file_path, 'w') as file:
         with requests.Session() as session:
-            for _ in range(num_accounts):
+            for i in range(num_accounts):
                 username = f"user{random.randint(10000, 99999)}"
                 password = f"pass{random.randint(10000, 99999)}"
                 account = create_account(session, username, password)
@@ -145,8 +145,8 @@ def main():
                     country = "USA"  # Example country, you may want to use an actual IP geolocation service
                     account_info = f"_______________\nUsername: {username}\nPassword: {password}\nDate: {date_created}\nCountry: {country}\n_______________\n"
                     file.write(account_info)
-                    file.flush()  # Ensure data is written to file immediately
-                    time.sleep(2)  # Increase sleep to avoid rate limiting
+                    file.flush()
+                    time.sleep(10)  # Increase sleep time to avoid rate limiting
 
     send_to_discord(webhook_url, file_path)
 
