@@ -145,7 +145,8 @@ def main():
                     country = "USA"  # Example country, you may want to use an actual IP geolocation service
                     account_info = f"_______________\nUsername: {username}\nPassword: {password}\nDate: {date_created}\nCountry: {country}\n_______________\n"
                     file.write(account_info)
-                    time.sleep(1)  # To avoid rate limiting
+                    file.flush()  # Ensure data is written to file immediately
+                    time.sleep(2)  # Increase sleep to avoid rate limiting
 
     send_to_discord(webhook_url, file_path)
 
