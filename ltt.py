@@ -129,18 +129,21 @@ def main():
         account = create_account(session, username, password)
         if account:
             accounts.append(account)
-        time.sleep(1)  # Wartezeit einfügen, um zu viele Anfragen zu vermeiden
+        time.sleep(5)  # Wartezeit auf 5 Sekunden erhöht
 
-    filename = 'acc.txt'
-    with open(filename, 'w') as file:
-        for account in accounts:
-            file.write(f"_______________\n")
-            file.write(f"Username: {account['username']}\n")
-            file.write(f"Password: {account['password']}\n")
-            file.write(f"Date: {account['date']}\n")
-            file.write(f"________________\n")
+    if accounts:  # Überprüfen, ob tatsächlich Accounts generiert wurden
+        filename = 'acc.txt'
+        with open(filename, 'w') as file:
+            for account in accounts:
+                file.write(f"_______________\n")
+                file.write(f"Username: {account['username']}\n")
+                file.write(f"Password: {account['password']}\n")
+                file.write(f"Date: {account['date']}\n")
+                file.write(f"________________\n")
 
-    send_to_discord(filename, webhook_url)
+        send_to_discord(filename, webhook_url)
+    else:
+        logger.error("No accounts were generated.")
 
 if __name__ == "__main__":
     main()
