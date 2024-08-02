@@ -23,9 +23,12 @@ def check_token(token):
         response = requests.get(DISCORD_API_URL, headers=headers)
         if response.status_code == 200:
             return token, "Valid"
-    except requests.RequestException:
-        pass
-    return token, "Invalid"
+        elif response.status_code == 401:
+            return token, "Invalid"  # Unauthorized - token invalid
+        else:
+            return token, f"Error: {response.status_code}"
+    except requests.RequestException as e:
+        return token, f"Exception: {str(e)}"
 
 # Funktion zur Verarbeitung von Tokens
 def process_tokens():
