@@ -33,7 +33,9 @@ def spam_webhook():
 
 def bot_token_raid():
     bot_token = input(f"{Fore.GREEN}Enter the Bot Token: ")
-    intents = discord.Intents.all()
+    intents = discord.Intents.default()
+    intents.members = True  # Enable members intent
+    intents.presences = True  # Enable presences intent
     bot = commands.Bot(command_prefix="!", intents=intents)
 
     @bot.event
@@ -61,14 +63,15 @@ def bot_token_raid():
             message = input(f"{Fore.GREEN}Enter the message: ")
 
             async def spam_messages():
-                for channel in bot.guilds[0].channels:
-                    while True:
+                while True:
+                    for channel in bot.guilds[0].channels:
                         try:
                             await channel.send(message)
                             print(f"{Fore.RED}Sent message in channel {channel.name}")
                         except:
                             print(f"{Fore.RED}Failed to send message in channel {channel.name}")
                         await asyncio.sleep(0.01)  # adjust if necessary to avoid rate limits
+
             asyncio.create_task(spam_messages())
         elif choice == "4":
             guild = bot.guilds[0]
